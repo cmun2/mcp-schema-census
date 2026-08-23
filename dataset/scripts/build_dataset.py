@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from prose import strip_prose, sha12          # noqa: E402
 from codes import meta_for                    # noqa: E402
+from rules import split_pointer               # noqa: E402
 
 SCHEMAS_COLLECTED_AT = "2026-08-09"
 VERDICTS_COMPUTED_AT = "2026-08-23"
@@ -264,12 +265,7 @@ def main():
 def _viol(c, pkg, eco, slice_lbl, tname, h):
     code = h["code"]
     m = meta_for(code)
-    val = h.get("value")
-    ptr, v = None, val
-    if isinstance(val, dict) and "at" in val:
-        ptr, v = val.get("at"), val.get("value")
-    elif isinstance(val, str) and val.startswith("#"):
-        ptr, v = val, None
+    ptr, v = split_pointer(h.get("value"))
     if isinstance(v, (dict, list)):
         v = strip_prose(v)
     row = {

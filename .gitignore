@@ -1,4 +1,7 @@
 node_modules/
+.env
 __pycache__/
 *.pyc
-.DS_Store
+.venv/
+oracle_ts/node_modules/
+.venv-anth/

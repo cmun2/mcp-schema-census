@@ -415,11 +415,16 @@ python3 scripts/explain.py --help     # 판정 1건씩
 
 ## 이 레포의 관련 파일
 
-- `../checker/WIP-HALTED.md` — 서버 작성자용 CLI를 계획했다가 **코드를 한 줄도 쓰기
-  전에 중단**한 기록. [선행연구](#선행연구)의 반증 조사에서 같은 영역의 도구 5종이
-  이미 있다는 걸 확인했기 때문이다. 무엇을 찾았고 그 결과 무엇을 바로잡았는지 적어 뒀다.
+- `../checker/` — **`mcp-schema-check`**. 서버 작성자용 CLI다. 자기 서버를 가리키면
+  각 제공사 strict 모드가 어떤 스키마를 거부하는지, JSON pointer·공식 문서 축어 인용·
+  한 줄 수정법과 함께 알려준다. 규칙을 따로 갖지 않고 이 디렉토리의 `scripts/rules/`를
+  그대로 import하며, `checker/tests/crosscheck_corpus.py`가 617개 서버를 전부 다시
+  통과시켜 출력이 `violations.jsonl`과 정확히 일치함을 증명한다.
+  `../checker/HALT-AND-RESTART.md`에 처음에 코드를 한 줄도 쓰기 전에 중단했던 이유
+  ([선행연구](#선행연구) 반증 조사에서 같은 영역 도구 5종 확인)와 재개하며 바뀐 것을
+  적어 뒀다.
 - `../REPORT.md` — 2026-08-09 A·B축 측정 (결과 0.0%, park)
 - `../REPORT_ANTHROPIC.md` — 2026-08-23 C축 재측정
 - `../sdk-bug/` — `anthropic` 1.0.0 `transform_schema`가 `type: ["string","null"]`에서
-  `AssertionError`로 죽는 것을 **직접 작성한** 최소 재현 예제와 이슈 초안.
-  **업스트림 제출은 하지 않았다.**
+  `AssertionError`로 죽는 것을 **직접 작성한** 최소 재현 예제와 제출한 이슈 본문.
+  **2026-08-23 [anthropic-sdk-python#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876)으로 업스트림 제출했다.**

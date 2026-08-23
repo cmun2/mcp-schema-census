@@ -562,13 +562,19 @@ Summarised here, in full in [LIMITATIONS.md](LIMITATIONS.md).
 
 ## Related files in this repository
 
-- `../checker/WIP-HALTED.md` — a server-author CLI that was planned and then
-  **stopped before any code was written**, because the falsification pass in
-  [Related work](#related-work) found five tools already in that space. The
-  note records what was found, and the two corrections it produced.
+- `../checker/` — **`mcp-schema-check`**, a CLI for server authors: point it at
+  your own server and it reports which of your tool schemas each provider's
+  strict mode would reject, with the JSON pointer, the verbatim doc quote and a
+  one-line fix. It imports this directory's `scripts/rules/` rather than
+  keeping its own copy, and `checker/tests/crosscheck_corpus.py` replays all
+  617 servers through it to prove its output matches `violations.jsonl` exactly.
+  `../checker/HALT-AND-RESTART.md` records why it was stopped before any code
+  was written the first time — the falsification pass in
+  [Related work](#related-work) found five tools already in that space — and
+  what changed on the restart.
 - `../REPORT.md` — the 2026-08-09 axis-A/B measurement (result: 0.0%, parked)
 - `../REPORT_ANTHROPIC.md` — the 2026-08-23 axis-C re-measurement
 - `../sdk-bug/` — a minimal, independently written reproduction of an
   `AssertionError` crash in `anthropic` 1.0.0 `transform_schema` on
-  `type: ["string","null"]`, plus an unfiled issue draft. **Not submitted
-  upstream.**
+  `type: ["string","null"]`, plus the issue body as filed. **Filed upstream
+  2026-08-23 as [anthropic-sdk-python#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876).**

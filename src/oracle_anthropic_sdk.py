@@ -16,40 +16,18 @@ Two outputs per tool:
   dropped      -- keywords the SDK stripped out of the wire schema
                   (i.e. the constraint is LOST unless the caller re-validates)
 
+The oracle body lives in dataset/scripts/rules/sdk_oracle.py so that this
+script and checker/mcp_schema_check.py --sdk-oracle run the identical
+transform-and-diff, for the same reason the verdict rules are shared.
+
 Run with the venv that has `anthropic` installed.
 """
-import json, os, sys, copy
-
-from anthropic.lib._parse._transform import transform_schema
+import json, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "dataset", "scripts"))
 
-WATCH = ["minimum", "maximum", "multipleOf", "exclusiveMinimum", "exclusiveMaximum",
-         "minLength", "maxLength", "pattern", "maxItems", "minItems", "uniqueItems",
-         "additionalProperties", "format", "const", "default", "propertyNames",
-         "patternProperties", "oneOf", "not", "examples"]
-
-
-def keywords_present(node, acc=None):
-    if acc is None:
-        acc = set()
-    if isinstance(node, dict):
-        for k, v in node.items():
-            if k in WATCH:
-                acc.add(k)
-            if k in ("properties", "$defs", "definitions") and isinstance(v, dict):
-                for sub in v.values():
-                    keywords_present(sub, acc)
-            elif k in ("anyOf", "oneOf", "allOf") and isinstance(v, list):
-                for sub in v:
-                    keywords_present(sub, acc)
-            elif k == "items":
-                if isinstance(v, dict):
-                    keywords_present(v, acc)
-                elif isinstance(v, list):
-                    for sub in v:
-                        keywords_present(sub, acc)
-    return acc
+from rules.sdk_oracle import WATCH, keywords_present, run_one   # noqa: E402,F401
 
 
 def main():
@@ -67,20 +45,13 @@ def main():
                 s = t.get("inputSchema") if isinstance(t, dict) else None
                 if not isinstance(s, dict):
                     continue
-                before = keywords_present(copy.deepcopy(s))
-                try:
-                    after_schema = transform_schema(copy.deepcopy(s))
-                    err = None
-                except Exception as e:  # noqa: BLE001
+                res = run_one(s)
+                if res["raises"]:
                     raises += 1
-                    per_tool.append({"tool": t.get("name"), "raises": type(e).__name__ + ": " + str(e)[:120]})
-                    continue
-                after = keywords_present(after_schema)
-                # additionalProperties is ADDED by the transformer, never dropped
-                dropped = sorted((before - after) - {"additionalProperties"})
-                if dropped:
+                    per_tool.append({"tool": t.get("name"), "raises": res["raises"]})
+                elif res["dropped"]:
                     dropped_any += 1
-                    per_tool.append({"tool": t.get("name"), "dropped": dropped})
+                    per_tool.append({"tool": t.get("name"), "dropped": res["dropped"]})
             rows.append({"server_name": r["server_name"], "pkg": r["pkg"],
                          "n_tools": len(r.get("tools") or []),
                          "sdk_raises": raises > 0,
