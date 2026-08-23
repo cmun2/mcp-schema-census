@@ -190,7 +190,7 @@ Of the 88 `AssertionError`s, 57 are exactly `["string","null"]` (17 servers) and
 Zod's `.nullable()` and Pydantic's `Optional[...]` routinely emit, so this is
 not an exotic input. An `assert_never` reached by ordinary user data reads as an
 implementation defect rather than a documented limitation. A minimal, from-scratch
-reproduction is in `../sdk-bug/` — **not filed upstream**.
+reproduction is in `../sdk-bug/` — filed upstream as [#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876).
 
 ---
 

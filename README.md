@@ -45,7 +45,7 @@ removed only have to ask.
 | [`dataset/`](dataset/) | the published artifact — data, docs, verification scripts |
 | [`src/`](src/) | collection harness and the rule implementations |
 | [`oracle_ts/`](oracle_ts/) | the MCP TypeScript SDK oracle used for axis A |
-| [`sdk-bug/`](sdk-bug/) | minimal reproduction of an `AssertionError` in the official Anthropic Python SDK on `type: ["string","null"]` (74 tools affected). Not filed upstream yet. |
+| [`sdk-bug/`](sdk-bug/) | minimal reproduction of an `AssertionError` in the official Anthropic Python SDK on `type: ["string","null"]`, found by running that SDK over this corpus as an oracle. 88 tools across 30 servers. Filed upstream as [anthropic-sdk-python#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876). |
 | [`REPORT.md`](REPORT.md) | 2026-08-09 — axes A and B (result: 0.0%) |
 | [`REPORT_ANTHROPIC.md`](REPORT_ANTHROPIC.md) | 2026-08-23 — the Anthropic strict axis (0.0% → 63.0%) |
 | [`checker/`](checker/) | a per-server checker CLI, started and halted. See `WIP-HALTED.md`. |

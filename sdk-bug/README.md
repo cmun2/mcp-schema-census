@@ -1,18 +1,17 @@
-# sdk-bug — prepared, not filed
+# sdk-bug — filed upstream
 
 An upstream defect found while running the `mcp-schema-census` corpus through
 the official Anthropic Python SDK as an independent oracle.
 
-**Nothing here has been submitted.** No issue was opened, no repository was
-contacted, nothing was pushed. This directory is a prepared artefact and filing
-it is a separate decision.
+**Filed 2026-08-23 as [anthropic-sdk-python#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876).** The issue body
+below is what was submitted; the script is what it links to.
 
 ## Contents
 
 | file | what it is |
 |---|---|
 | `repro_type_array_null.py` | a minimal, **from-scratch** reproduction with controls. No third-party schema is pasted anywhere in it. |
-| `ISSUE_DRAFT.md` | the issue body, in English, ready to file at `anthropics/anthropic-sdk-python` |
+| `ISSUE_DRAFT.md` | the issue body, as filed at [#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876) |
 
 ## The defect
 

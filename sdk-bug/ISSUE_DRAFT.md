@@ -1,11 +1,10 @@
-# DRAFT — NOT SUBMITTED
+# Filed upstream
 
-This is a prepared issue body for `anthropics/anthropic-sdk-python`. It has
-**not** been filed, and nothing in this directory has been sent anywhere.
-Filing it is a separate decision.
+Filed 2026-08-23 as [anthropics/anthropic-sdk-python#1876](https://github.com/anthropics/anthropic-sdk-python/issues/1876). Kept here
+so the corpus numbers quoted in the issue stay next to the corpus they came from.
 
 Target repo: https://github.com/anthropics/anthropic-sdk-python
-Suggested title: `transform_schema raises AssertionError on type arrays (e.g. type: ["string","null"])`
+Title: `transform_schema raises AssertionError on type arrays (e.g. type: ["string","null"])`
 
 ---
 
