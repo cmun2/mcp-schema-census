@@ -1,0 +1,127 @@
+# Licensing
+
+This repository contains two different kinds of material under two different
+licenses, and redistributes a third kind not at all.
+
+---
+
+## 1. The measurement results — CC BY 4.0
+
+Everything we produced by measuring: the verdicts, the violation records, the
+JSON pointers, the constraint values, the counts, the control results, the
+documentation.
+
+Concretely: `servers.jsonl`, `tools.jsonl`, `violations.jsonl`,
+`controls.jsonl`, `failures.jsonl`, `STATS.txt`, and every `.md` file here.
+
+    Creative Commons Attribution 4.0 International (CC BY 4.0)
+    https://creativecommons.org/licenses/by/4.0/
+
+Suggested attribution:
+
+    mcp-schema-census (2026). Schemas collected 2026-08-09;
+    verdicts computed against provider constraint documents read 2026-08-23.
+    CC BY 4.0.
+
+## 2. The scripts — MIT
+
+Everything under `scripts/`.
+
+    MIT License
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+`scripts/judge_anthropic.py` and `scripts/judge_mcp_and_openai.py` are our own
+code and are MIT like the rest. They quote provider documentation in comments;
+those quotations are the providers'.
+
+---
+
+## 3. Third-party material — NOT relicensed, and mostly NOT redistributed
+
+**We do not relicense anyone else's work.** Two categories:
+
+### 3a. Tool descriptions and schema prose — removed, not redistributed
+
+Every free-text field written by a server author has been stripped from this
+dataset: `description`, `title`, `$comment`, `summary`, `examples`, `example`,
+and their variants, at every depth, in both `inputSchema` and `outputSchema`,
+and the tool-level `description` too.
+
+What remains in their place is two non-expressive facts per tool:
+`description_len` (an integer) and `description_sha256_12` (12 hex characters).
+4,327,823 characters of third-party prose were removed this way.
+
+This is enforced by `scripts/prose.py::strip_prose()` and verified by
+`scripts/verify_no_prose.py`, which scans all 47,766 published records and must
+report **0** prose fields for the build to pass. `scripts/verify_verdicts.py`
+then re-runs the judge over the stripped schemas and proves that removing the
+prose changed **no verdict** — 19,159 hits compared, 0 differences. Nothing of
+analytical value was lost; only the copyrightable text was.
+
+If you need the original text, collect it yourself from the source. Every row
+in `servers.jsonl` carries `repository`, `package`, `ecosystem` and
+`package_version`; METHODOLOGY.md "Reproducing layer 2" is the harness.
+
+### 3b. Schema structure, names, types and constraint values — retained as facts
+
+Property names, types, `enum` members, `pattern` regexes, `$ref` targets, and
+the constraint values that produced each verdict (`minimum: 1`,
+`maxLength: 500`, `minItems: 2`, ...) are retained. They are the measurement.
+A verdict without the value that caused it is not checkable, and an unfalsifiable
+dataset is worthless.
+
+We publish these as factual observations about how each schema is disposed of
+by each provider's published constraints. We make no claim to own them, and we
+do not place them under CC BY 4.0 — clause 1 covers our verdicts about them,
+not the underlying schemas.
+
+### How to check a specific server's license
+
+We deliberately do not record or assert any server's license, because a license
+recorded on 2026-08-09 may be wrong today. For any row in `servers.jsonl`:
+
+    # the source repository, as published in the MCP registry
+    jq -r 'select(.package=="PKG") | .repository' servers.jsonl
+
+    # npm
+    npm view PKG@VERSION license repository.url
+
+    # PyPI
+    pip download --no-deps PKG==VERSION   # then read the wheel metadata
+    # or: https://pypi.org/pypi/PKG/VERSION/json  -> .info.license
+
+Read the license in the repository itself; registry metadata is self-reported
+and is not authoritative.
+
+### If you are a server author and want a row removed
+
+Open an issue. We will remove it. You do not need to argue the legal question
+first — see README.md "Correcting a verdict".
+
+---
+
+## 4. Provider documentation quotations
+
+`violations.jsonl` carries a `source` URL and a `source_quote` for every
+verdict. Those quotes are short excerpts from Anthropic, OpenAI/Microsoft and
+Model Context Protocol documentation, quoted for identification and criticism
+of the rule being applied. They belong to their respective owners and are not
+covered by clause 1. They are reproduced because a verdict that does not name
+the sentence it came from cannot be argued with.

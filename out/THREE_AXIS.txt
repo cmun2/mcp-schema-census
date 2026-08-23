@@ -1,0 +1,94 @@
+============================================================================================
+THREE-AXIS COMPARISON   (globally de-duplicated by package; N=617 servers)
+============================================================================================
+
+axis                                                          servers              tools
+A  MCP spec  (whole-server reject)                       0/617 =   0.0%   0/14804 =   0.0%
+B  OpenAI strict  hard reject                          170/617 =  27.6%   868/14804 =   5.9%
+B' OpenAI strict  silent loss                          351/617 =  56.9%   3332/14804 =  22.5%
+C0 Anthropic API baseline (root oneOf/allOf/anyOf)       0/617 =   0.0%   0/14804 =   0.0%
+C  Anthropic strict  subset violation                  389/617 =  63.0%   3411/14804 =  23.0%
+CL Anthropic strict  complexity limits                 230/617 =  37.3%                n/a
+C* Anthropic ANY (C0 or C or CL)                       447/617 =  72.4%   3411/14804 =  23.0%
+
+(total tools in the de-duplicated corpus: 14804)
+
+============================================================================================
+PER-POPULATION (holdout was collected AFTER the axis-A/B rules were frozen)
+============================================================================================
+population       N        A        B       C0        C       CL       C*
+npm            298     0.0%    26.2%     0.0%    62.8%    38.6%    73.5%
+pypi           117     0.0%    42.7%     0.0%    53.8%    41.9%    63.2%
+holdout        202     0.0%    20.8%     0.0%    68.8%    32.7%    76.2%
+
+============================================================================================
+AXIS INDEPENDENCE  -- are the axes measuring the same thing?
+============================================================================================
+  A (MCP spec)        n=   0
+  B (OpenAI hard)     n= 170
+  C* (Anthropic any)  n= 447
+
+  B and C*   :  170      B only:    0      C* only:  277
+  Jaccard(B,C*) = 0.380
+  P(C* | B)  = 1.000     P(B | C*) = 0.380
+
+  Servers that are CLEAN on both existing axes but FAIL the Anthropic axis:
+    277/617 = 44.9%   <-- this is the information the 2026-08-09 POC missed
+
+  Cross-tab (server counts):
+                             C* fail   C* pass
+    B fail                       170         0
+    B pass                       277       170
+
+  Anthropic-strict violation categories vs OpenAI-strict treatment of the SAME keyword:
+    keyword                   OpenAI strict   Anthropic strict
+    additionalProperties!=false       400 (hard)         400 (hard)
+    minimum / maximum      silently dropped         400 (hard)
+    minLength / maxLength  silently dropped         400 (hard)
+    maxItems / uniqueItems silently dropped         400 (hard)
+    minItems >= 2          silently dropped         400 (hard)
+    pattern                silently dropped          SUPPORTED
+    >24 optional params       no such limit         400 (hard)
+    >20 strict tools          no such limit         400 (hard)
+
+  The decisive asymmetry: servers whose ONLY OpenAI problem was a SILENT loss,
+  but which are a HARD 400 on Anthropic:
+    219/617 = 35.5%
+
+============================================================================================
+ORACLE CORROBORATION -- official Anthropic Python SDK v1.0.0 transform_schema
+============================================================================================
+  N=617
+  SDK transform_schema RAISES (schema cannot be normalised) : 75/617 = 12.2%
+  SDK transform_schema STRIPS >=1 constraint                : 446/617 = 72.3%
+  agreement with my static axis-C rule (server unit)        : 510/617 = 82.7%
+    rule fires / SDK keeps everything (possible FP)         : 25
+    rule silent / SDK strips something  (possible FN)       : 82
+
+============================================================================================
+EXAMPLES -- highest-profile servers failing the Anthropic axis
+============================================================================================
+  * io.github.1clawAI/1claw-mcp                    stars=    -1  tools= 66
+      {'C3-string-constraint:minLength': 33, 'C1-additionalProperties-not-false': 14, 'C2-numeric-constraint:minimum': 4, 'C3-string-constraint:maxLength': 3}  CL1-too-many-strict-tools,CL2-too-many-optional-params
+  * com.636865636b73756d/mcp-v1                    stars=    -1  tools=  2
+      {'C3-string-constraint:maxLength': 1}  
+  * io.github.Abhishekkumar2021/github             stars=    -1  tools= 16
+      {'C2-numeric-constraint:maximum': 6}  
+  * io.github.Abhishekkumar2021/http               stars=    -1  tools= 13
+      {'C1-additionalProperties-not-false': 7}  
+  * io.github.Abhishekkumar2021/notes              stars=    -1  tools= 22
+      {'C2-numeric-constraint:maximum': 6, 'C2-numeric-constraint:minimum': 3, 'C1-additionalProperties-not-false': 1}  CL1-too-many-strict-tools
+  * io.github.Abhishekkumar2021/sql                stars=    -1  tools=  9
+      {'C2-numeric-constraint:maximum': 1}  
+  * com.adbutler/mcp-server                        stars=    -1  tools=619
+      {'C1-additionalProperties-not-false': 55}  CL1-too-many-strict-tools,CL2-too-many-optional-params
+  * ai.adeu/adeu                                   stars=    -1  tools=  9
+      {}  CL2-too-many-optional-params
+  * io.github.Agent360dk/browser-mcp               stars=    -1  tools= 34
+      {}  CL1-too-many-strict-tools,CL2-too-many-optional-params
+  * io.agentage/find-mcp                           stars=    -1  tools=  3
+      {'C3-string-constraint:minLength': 4, 'C3-string-constraint:maxLength': 2, 'C2-numeric-constraint:minimum': 2, 'C2-numeric-constraint:maximum': 2}  
+  * io.github.Bichev/agentradar                    stars=    -1  tools= 18
+      {'C2-numeric-constraint:maximum': 2, 'C4-array-constraint:maxItems': 1}  
+  * io.github.Agonx402/agon-protocol               stars=    -1  tools=  9
+      {'C1-additionalProperties-not-false': 1}  

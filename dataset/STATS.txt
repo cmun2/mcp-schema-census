@@ -1,0 +1,144 @@
+====================================================================================
+mcp-schema-census -- STATS  (regenerated from the published JSONL)
+====================================================================================
+servers 617   tools 14804   violation rows 31954   startup failures 360   controls 31
+
+--- server-unit axis rates -------------------------------------------------
+A  MCP spec (whole-server reject)      not opt-in     0/617 =   0.0%
+B  OpenAI strict, hard reject          opt-in       170/617 =  27.6%
+B' OpenAI strict, silent loss          opt-in       351/617 =  56.9%
+C0 Anthropic Messages API baseline     not opt-in     0/617 =   0.0%
+C  Anthropic strict:true subset        opt-in       389/617 =  63.0%
+CL Anthropic request complexity limits opt-in       230/617 =  37.3%
+C* Anthropic any of C0/C/CL            opt-in*      447/617 =  72.4%
+
+--- tool-unit rates --------------------------------------------------------
+A        0/14804 =   0.0%
+B      868/14804 =   5.9%
+B'    3332/14804 =  22.5%
+C0       0/14804 =   0.0%
+C     3411/14804 =  23.0%
+
+--- per population ---------------------------------------------------------
+slice      eco        N        A       B      C0       C      CL      C*
+npm        npm      298     0.0%   26.2%    0.0%   62.8%   38.6%   73.5%
+pypi       pypi     117     0.0%   42.7%    0.0%   53.8%   41.9%   63.2%
+holdout    npm      202     0.0%   20.8%    0.0%   68.8%   32.7%   76.2%
+
+--- axis independence ------------------------------------------------------
+|A| = 0   |B| = 170   |C*| = 447
+B and C* = 170   B only = 0   C* only = 277
+Jaccard(B,C*) = 0.380
+P(C*|B) = 1.000   P(B|C*) = 0.380
+containment A subset-of B subset-of C* : True / True
+clean on A and B, fails C*  :  277/617 =  44.9%
+OpenAI silent-loss only -> Anthropic hard 400 :  219/617 =  35.5%
+
+--- violation codes (hard verdicts only, ambiguous excluded) ---------------
+code                                        servers     hits
+C2-numeric-constraint:minimum                   267     2828
+B5-unsupported-keyword:minimum                  267     2826
+C2-numeric-constraint:maximum                   259     2380
+B5-unsupported-keyword:maximum                  259     2380
+C3-string-constraint:minLength                  158     2369
+B5-unsupported-keyword:minLength                158     2310
+C1-additionalProperties-not-false               169     1704
+B3-additionalProperties-open                    169     1566
+C3-string-constraint:maxLength                  138     1409
+B5-unsupported-keyword:maxLength                138     1396
+B5-unsupported-keyword:format                   117      824
+B5-unsupported-keyword:pattern                   77      586
+B5-unsupported-keyword:minItems                 110      339
+C4-array-constraint:maxItems                     94      296
+B5-unsupported-keyword:maxItems                  94      296
+CL2-too-many-optional-params                    210      210
+B5-unsupported-keyword:propertyNames             29      165
+CL1-too-many-strict-tools                       141      141
+B6-too-deep                                      42       79
+C6-recursive-schema                               5       63
+C4-array-constraint:minItems                     24       32
+CL3-too-many-union-params                        18       18
+B6-too-many-properties                            6       18
+C8-allOf-with-ref                                 1       11
+C4-array-constraint:uniqueItems                   1        6
+B5-unsupported-keyword:uniqueItems                1        6
+B5-unsupported-keyword:minProperties              1        4
+
+--- DOCUMENTED AMBIGUITIES (excluded from every count above) ---------------
+code                                        servers     hits
+AMB-additionalProperties-absent                 412     6690
+AMB-numeric:exclusiveMinimum                     69      379
+AMB-unlisted:oneOf                               13      329
+AMB-unlisted:propertyNames                       29      165
+AMB-format-unlisted:int64                         6       49
+AMB-format-unlisted:byte                          9       21
+AMB-format-unlisted:int32                         3       19
+AMB-format-unlisted:uint32                        1        9
+AMB-format-unlisted:integer                       1        8
+AMB-unlisted:not                                  2        7
+AMB-format-unlisted:uint                          1        4
+AMB-unlisted:minProperties                        1        4
+AMB-unlisted:if                                   2        3
+AMB-unlisted:then                                 2        3
+AMB-numeric:exclusiveMaximum                      1        1
+AMB-unlisted:dependentRequired                    1        1
+
+by family:
+AMB-additionalProperties-absent                 412     6690
+AMB-numeric                                      69      380
+AMB-unlisted                                     41      512
+AMB-format-unlisted                              15      110
+
+--- SDK oracle (anthropic-python-sdk 1.0.0 transform_schema) ---------------
+SDK raises                        75/617 =  12.2%
+SDK strips >=1 constraint        446/617 =  72.3%
+agreement with axis-C rule       510/617 =  82.7%
+  rule fires / SDK keeps  (FP)  25
+  rule silent / SDK strips (FN) 82
+  FP + FN                       107
+
+SDK exceptions, tool unit (top 8):
+    150  ValueError: Schema must have a 'type', 'anyOf', 'one
+     88  AssertionError: Expected code to be unreachable, but got
+      6  TypeError: 'list' object is not a mapping
+
+SDK AssertionError by type array (this is the upstream SDK defect):
+     57 tools   17 servers  ['string', 'null']
+      9 tools    2 servers  ['integer', 'null']
+      7 tools    6 servers  ['number', 'null']
+      7 tools    3 servers  ['string', 'number']
+      4 tools    3 servers  ['number', 'string']
+      1 tools    1 servers  ['string', 'number', 'boolean', 'null']
+      1 tools    1 servers  ['string', 'object']
+      1 tools    1 servers  ['string', 'boolean', 'number']
+      1 tools    1 servers  ['null', 'array']
+     88 tools   30 servers  ANY type array
+     75 tools              any array containing 'null'
+
+--- controls ---------------------------------------------------------------
+axis-C positive controls  : 16/16 pass
+axis-C negative controls  : 5/5 pass
+axis-A/B control cases    : 10  (oracle A throws on 7)
+
+--- subsets (activity) -----------------------------------------------------
+subset                                 N       C      CL      C*
+all                                  617   63.0%   37.3%   72.4%
+repository URL in registry           554   62.6%   38.3%   72.6%
+GitHub API resolved (stars known)    354   59.6%   39.5%   70.1%
+stars >= 10                           87   59.8%   58.6%   77.0%
+stars >= 100                          11   54.5%   45.5%   72.7%
+tools >= 5                           450   66.4%   50.0%   78.9%
+npm weekly downloads >= 1000          20   85.0%   65.0%   85.0%
+
+--- startup failures (not in the corpus) -----------------------------------
+servers attempted : 977 raw rows (360 failed, 617 distinct packages returned tools/list)
+  timeout_or_crash         356
+  rpc_error                4
+  env-var retry attempted  55
+  ecosystem npm            218
+  ecosystem pypi           142
+
+--- description prose (removed; length/digest retained) --------------------
+tools with a description : 14800/14804
+total characters removed : 4327823
+median / max length      : 170 / 36694
