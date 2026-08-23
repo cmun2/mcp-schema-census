@@ -79,6 +79,17 @@ other.
 That is the gap this command reports. It is a different question from
 specification conformance, not a better answer to the same one.
 
+The distinction is not ours. An MCP Inspector maintainer, triaging
+[inspector#1005](https://github.com/modelcontextprotocol/inspector/issues/1005)
+on 2026-08-01, scored its severity 4/5 with this reasoning:
+
+> Inspector accepts schemas that real clients reject, so a server can pass
+> here and fail in Claude Code. Reporting a server as healthier than it is
+> undermines the point of the tool.
+
+Note which way the measurement runs, though: the axis *that* issue is about
+fails 0 of 617 servers. The layer that bites is the provider subset above it.
+
 Full evidence for those numbers, including what was verified about each tool
 above and how, is in
 [`../dataset/README.md` § Related work](../dataset/README.md#related-work).

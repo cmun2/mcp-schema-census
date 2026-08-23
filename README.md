@@ -105,8 +105,20 @@ my server a valid MCP server", use one of those. They are better at it.**
 
 They all read the same axis, and on that axis the corpus fails **0 of 617**.
 The provider strict-mode subset — the narrower JSON Schema each provider
-accepts once strict tool use is on — is a different question, and nobody was
-answering it. That is the only reason this exists.
+accepts once strict tool use is on — is a different question, and as far as I
+could find nobody was answering it. That is the only reason this exists.
+
+The distinction is not mine. An MCP Inspector maintainer, triaging
+[inspector#1005](https://github.com/modelcontextprotocol/inspector/issues/1005)
+on 2026-08-01, scored its severity 4/5 with this reasoning:
+
+> Inspector accepts schemas that real clients reject, so a server can pass here
+> and fail in Claude Code. Reporting a server as healthier than it is
+> undermines the point of the tool.
+
+This repository is the size of that gap, measured. It turns out to run the
+other way from what you might guess: the axis that issue is about fails
+**0 of 617** servers, and what actually bites sits a layer above it.
 
 ## Layout
 
