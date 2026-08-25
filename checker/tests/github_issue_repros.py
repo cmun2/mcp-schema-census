@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CHECKER = os.path.dirname(HERE)
 sys.path.insert(0, CHECKER)
 
-from mcp_schema_check import analyse            # noqa: E402
+from mcp_strict_check import analyse            # noqa: E402
 
 
 CASES = [

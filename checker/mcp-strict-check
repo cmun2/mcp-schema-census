@@ -1,0 +1,9 @@
+#!/bin/sh
+# Run the checker straight out of a checkout, with nothing installed.
+#
+# The installed package provides a `mcp-strict-check` console script that does
+# the same thing:  uvx mcp-strict-check --help
+# This launcher exists so the repository stays runnable as-is -- the rule
+# engine it imports is dataset/scripts/rules/, in this same tree.
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m mcp_strict_check "$@"

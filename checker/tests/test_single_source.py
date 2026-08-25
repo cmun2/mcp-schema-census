@@ -38,7 +38,7 @@ def check(label, ok, detail=""):
 
 
 # --------------------------------------------------- 1. same module object
-import mcp_schema_check                       # noqa: E402  the checker
+import mcp_strict_check                       # noqa: E402  the checker
 import judge_anthropic, judge_mcp_and_openai  # noqa: E402  dataset build CLIs
 import lint_anthropic, lint                   # noqa: E402  collection CLIs
 import explain                                # noqa: E402  per-verdict re-derivation
@@ -46,7 +46,7 @@ import rules                                  # noqa: E402  the engine itself
 import codes                                  # noqa: E402  compat shim
 
 consumers = {
-    "checker/mcp_schema_check.py":            mcp_schema_check,
+    "checker/mcp_strict_check/cli.py":            mcp_strict_check,
     "dataset/scripts/judge_anthropic.py":     judge_anthropic,
     "dataset/scripts/judge_mcp_and_openai.py": judge_mcp_and_openai,
     "src/lint_anthropic.py":                  lint_anthropic,
@@ -59,12 +59,12 @@ canonical_B = rules.mcp_openai.check_B
 canonical_meta = rules.codes.meta_for
 
 bound = {
-    "checker/mcp_schema_check.py -> judge_server_anthropic":
-        mcp_schema_check.judge_server_anthropic is rules.anthropic.judge_server,
-    "checker/mcp_schema_check.py -> judge_server_mcp_openai":
-        mcp_schema_check.judge_server_mcp_openai is rules.mcp_openai.judge_server,
-    "checker/mcp_schema_check.py -> meta_for":
-        mcp_schema_check.meta_for is canonical_meta,
+    "checker/mcp_strict_check/cli.py -> judge_server_anthropic":
+        mcp_strict_check.judge_server_anthropic is rules.anthropic.judge_server,
+    "checker/mcp_strict_check/cli.py -> judge_server_mcp_openai":
+        mcp_strict_check.judge_server_mcp_openai is rules.mcp_openai.judge_server,
+    "checker/mcp_strict_check/cli.py -> meta_for":
+        mcp_strict_check.meta_for is canonical_meta,
     "dataset/scripts/judge_anthropic.py -> check_C":
         judge_anthropic.check_C is canonical_C,
     "dataset/scripts/judge_mcp_and_openai.py -> check_A":
@@ -90,12 +90,35 @@ print(f"  meta_for  defined once at {inspect.getsourcefile(canonical_meta)}")
 print()
 
 # ------------------------------------------- 2. one copy of the bodies on disk
+SKIP_DIRS = {".git", "node_modules", "__pycache__", ".eggs",
+             "out", "data", "oracle_ts", "sdk-bug",
+             # packaging by-products. They are copies BY CONSTRUCTION and are
+             # git-ignored; counting them would make `python -m build` look
+             # like a second source of truth. `tracked_copies` below is the
+             # check that cannot be fooled this way.
+             "build", "dist"}
+
+
+def _prune(base, dirs):
+    """Drop directories that are not repository content.
+
+    A virtualenv is identified by its pyvenv.cfg rather than by name, so a
+    third-party package that happens to contain `CODES = {` can never be
+    reported as a second copy of our rules."""
+    keep = []
+    for d in dirs:
+        if d in SKIP_DIRS or d.endswith(".egg-info"):
+            continue
+        if os.path.isfile(os.path.join(base, d, "pyvenv.cfg")):
+            continue                       # a virtualenv, not our source tree
+        keep.append(d)
+    return keep
+
+
 def bodies_on_disk(needle):
     hits = []
     for base, dirs, files in os.walk(ROOT):
-        dirs[:] = [d for d in dirs
-                   if d not in {".git", ".venv-anth", "node_modules", "__pycache__",
-                                "out", "data", "oracle_ts", "sdk-bug"}]
+        dirs[:] = _prune(base, dirs)
         for fn in files:
             if not fn.endswith(".py"):
                 continue
@@ -105,6 +128,33 @@ def bodies_on_disk(needle):
             with open(p, errors="replace") as f:
                 if needle in f.read():
                     hits.append(os.path.relpath(p, ROOT))
+    return sorted(hits)
+
+
+def tracked_copies(needle):
+    """The same count over git-tracked files only.
+
+    `bodies_on_disk` prunes; this does not -- git already knows what the
+    repository contains, so nothing here depends on the skip list being
+    right. Returns None when git is unavailable, and the caller says so
+    rather than silently passing."""
+    import subprocess
+    try:
+        out = subprocess.run(["git", "-C", ROOT, "ls-files", "-z", "*.py"],
+                             capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    hits = []
+    for rel in out.split("\0"):
+        if not rel or os.path.abspath(os.path.join(ROOT, rel)) == \
+                os.path.abspath(__file__):
+            continue
+        try:
+            with open(os.path.join(ROOT, rel), errors="replace") as f:
+                if needle in f.read():
+                    hits.append(rel)
+        except OSError:
+            continue
     return sorted(hits)
 
 
@@ -120,6 +170,10 @@ for needle, what in [
 ]:
     hits = bodies_on_disk(needle)
     check(f"exactly one copy of {what}", len(hits) == 1, f"found in: {hits}")
+    tracked = tracked_copies(needle)
+    check(f"exactly one git-tracked copy of {what}",
+          tracked is not None and len(tracked) == 1,
+          "git unavailable — unverified" if tracked is None else f"tracked: {tracked}")
 
 print()
 

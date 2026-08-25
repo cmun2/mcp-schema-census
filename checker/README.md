@@ -1,4 +1,4 @@
-# `mcp-schema-check`
+# `mcp-strict-check`
 
 Point it at your own MCP server. It tells you which of your tool schemas a
 model provider's **strict mode** would reject, at which JSON pointer, with the
@@ -6,9 +6,9 @@ sentence from that provider's own documentation the verdict rests on, and one
 line saying what to change.
 
 ```console
-$ ./checker/mcp-schema-check --cmd "python3 checker/examples/demo_server.py"
+$ uvx mcp-strict-check --cmd "npx -y your-mcp-server"
 
-mcp-schema-check 0.1.0  ·  python3 checker/examples/demo_server.py
+mcp-strict-check 0.1.0  ·  python3 checker/examples/demo_server.py
 rules: dataset/scripts  (the engine that produced the 617-server corpus in dataset/)
 
 4 tool(s) checked  ·  server: demo-flawed-server 0.1.0
@@ -98,44 +98,49 @@ above and how, is in
 
 ## Install
 
-There is nothing to install. Python 3.8+, standard library only, run it from a
-clone of this repository:
+Nothing to install — `uvx` fetches it on demand:
+
+```console
+uvx mcp-strict-check --help
+```
+
+Or put it on your PATH:
+
+```console
+uv tool install mcp-strict-check      # or: pipx install mcp-strict-check
+```
+
+Python 3.8+, standard library only, no dependencies. It never makes a network
+call: `--cmd` starts your server as a local child process, and every verdict
+comes from a published constraint document rather than from trying a request.
+
+Optional: `uv tool install "mcp-strict-check[sdk-oracle]"` unlocks
+`--sdk-oracle`, which runs Anthropic's own `transform_schema` locally. Still no
+API key, still no network.
+
+**Working on the rules themselves?** Then clone instead — the rules this
+command applies are the same module objects that produced the published corpus,
+and running from a clone is how you change both at once:
 
 ```console
 git clone https://github.com/cmun2/mcp-schema-census && cd mcp-schema-census
-./checker/mcp-schema-check --help
+./checker/mcp-strict-check --help
 ```
 
-Every example below is written as `./checker/mcp-schema-check`, which works
-from the repository root with nothing else set up. If you would rather type the
-bare name, alias it once:
-
-```console
-alias mcp-schema-check="$PWD/checker/mcp-schema-check"
-```
-
-It must run from inside the repository, because the rules it applies **are**
-`../dataset/scripts/rules/` — the same module that produced the published
-corpus. See "One engine" below for why that is a feature rather than packaging
-laziness.
-
-Optional: `pip install anthropic` unlocks `--sdk-oracle` (see below). Still no
-network call, still no API key.
-
----
+See "One engine" below for why that matters.
 
 ## Three ways in
 
 ```console
 # (a) start YOUR server as a local child process and call tools/list over stdio
-./checker/mcp-schema-check --cmd "npx -y my-server"
-./checker/mcp-schema-check --cmd "python -m my_server" --env API_KEY=dummy --cwd ./server
+uvx mcp-strict-check --cmd "npx -y my-server"
+uvx mcp-strict-check --cmd "python -m my_server" --env API_KEY=dummy --cwd ./server
 
 # (b) a tools/list response you already have
-./checker/mcp-schema-check --tools tools.json
+uvx mcp-strict-check --tools tools.json
 
 # (c) a single inputSchema
-./checker/mcp-schema-check --schema one-input-schema.json
+uvx mcp-strict-check --schema one-input-schema.json
 ```
 
 `--tools` accepts whichever shape you happen to have: the full JSON-RPC
@@ -153,7 +158,7 @@ not from trying a request and seeing what 400s.
 ## For CI
 
 ```console
-./checker/mcp-schema-check --cmd "node dist/index.js" --axis anthropic
+uvx mcp-strict-check --cmd "node dist/index.js" --axis anthropic
 ```
 
 | exit code | meaning |
@@ -204,8 +209,9 @@ omitting it entirely is a 400 is never stated. That is reported as
 ## `--sdk-oracle`
 
 ```console
-pip install anthropic
-./checker/mcp-schema-check --cmd "npx -y my-server" --sdk-oracle
+uvx --from "mcp-strict-check[sdk-oracle]" mcp-strict-check --cmd "npx -y my-server" --sdk-oracle
+# or, from a clone with `pip install anthropic` in the same interpreter:
+uvx mcp-strict-check --cmd "npx -y my-server" --sdk-oracle
 ```
 
 Runs Anthropic's *own* `transform_schema` over your schemas, locally, in
@@ -233,6 +239,14 @@ carries on. It never crashes and never becomes a hidden requirement.
 imports them — the same module objects that judged 617 servers and 14,804
 tools to produce the published rates.
 
+**Packaging did not change that.** There is still exactly one copy of the rule
+files in the repository. `pyproject.toml` maps that one directory into the
+wheel (`force-include`, `dataset/scripts/rules` → `mcp_strict_check/rules`)
+rather than checking a second copy into `checker/`, so `pip install
+mcp-strict-check` and `./checker/mcp-strict-check` are running the same rule
+bodies and `test_single_source.py` still finds a count of 1 — over the working
+tree *and*, independently, over `git ls-files`.
+
 ```
 dataset/scripts/rules/
   codes.py       verdict code -> axis, severity, source URL, verbatim doc quote
@@ -253,7 +267,10 @@ wrong. So:
 
 - `checker/tests/test_single_source.py` asserts, by object identity, that every
   consumer resolves to the *same* function objects, and walks the tree to
-  assert each rule body exists in exactly one file.
+  assert each rule body exists in exactly one file. It excludes virtualenvs
+  (detected by `pyvenv.cfg`, not by name) and `build/`/`dist/`, which are
+  copies by construction, and then repeats the count over `git ls-files` so
+  the answer does not depend on that exclusion list being right.
 - `checker/tests/crosscheck_corpus.py` replays servers out of the published
   corpus through this command and compares its findings against
   `dataset/violations.jsonl` **code by code, tool by tool, pointer by
@@ -299,4 +316,8 @@ needed to argue about it. See
 
 ## Licence
 
-Same as the dataset — see [`../dataset/LICENSE`](../dataset/LICENSE).
+The command and the rule engine are **MIT** — see [`../LICENSE`](../LICENSE).
+The measurement results are CC BY 4.0 and third-party prose is not
+redistributed at all; both are set out in
+[`../dataset/LICENSE`](../dataset/LICENSE), which remains authoritative for
+everything under `dataset/`.

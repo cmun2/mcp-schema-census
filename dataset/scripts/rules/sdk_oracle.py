@@ -16,7 +16,7 @@ statement about the SDK's implementation, and sometimes about an SDK defect
 ["string","null"] trips an internal assertion).
 
 Shared by src/oracle_anthropic_sdk.py (corpus run) and
-checker/mcp_schema_check.py (--sdk-oracle).
+the `mcp-strict-check --sdk-oracle` flag.
 """
 import copy
 

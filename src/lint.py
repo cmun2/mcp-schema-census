@@ -3,7 +3,7 @@
 
 Collection-time CLI. The rules are NOT here -- they live in the shared engine
 at `dataset/scripts/rules/`, which this file, the dataset build scripts and
-`checker/mcp_schema_check.py` all import. Before 2026-08-23 this file was a
+`checker/mcp_strict_check/cli.py` all import. Before 2026-08-23 this file was a
 byte-identical copy of dataset/scripts/judge_mcp_and_openai.py; that duplication is what the
 extraction removed.
 """

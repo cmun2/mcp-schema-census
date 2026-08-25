@@ -2,7 +2,7 @@
 """Verdict code -> axis, severity, source URL, verbatim source quote.
 
 SINGLE SOURCE OF TRUTH for the code table. Imported by the dataset build,
-by explain.py, and by checker/mcp_schema_check.py. Never transcribed.
+by explain.py, and by checker/mcp_strict_check/cli.py. Never transcribed.
 
 Every row in violations.jsonl carries the URL and the verbatim sentence the
 verdict was derived from. The claim this dataset makes is never "we decided

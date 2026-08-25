@@ -415,7 +415,7 @@ python3 scripts/explain.py --help     # 판정 1건씩
 
 ## 이 레포의 관련 파일
 
-- `../checker/` — **`mcp-schema-check`**. 서버 작성자용 CLI다. 자기 서버를 가리키면
+- `../checker/` — **`mcp-strict-check`**. 서버 작성자용 CLI다. 자기 서버를 가리키면
   각 제공사 strict 모드가 어떤 스키마를 거부하는지, JSON pointer·공식 문서 축어 인용·
   한 줄 수정법과 함께 알려준다. 규칙을 따로 갖지 않고 이 디렉토리의 `scripts/rules/`를
   그대로 import하며, `checker/tests/crosscheck_corpus.py`가 617개 서버를 전부 다시

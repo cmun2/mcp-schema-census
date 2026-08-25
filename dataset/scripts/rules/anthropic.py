@@ -57,7 +57,7 @@ else -- no I/O, no CLI, no file paths. Every consumer imports it:
   dataset/scripts/judge_anthropic.py   (dataset build CLI)
   src/lint_anthropic.py                (collection-time CLI)
   dataset/scripts/explain.py           (per-verdict re-derivation)
-  checker/mcp_schema_check.py          (the server-author CLI)
+  checker/mcp_strict_check/cli.py      (the server-author CLI)
 Do not copy a rule out of here. Two copies drift, and the day they disagree
 neither the dataset nor the checker can be trusted.
 """

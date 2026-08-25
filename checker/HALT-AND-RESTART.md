@@ -28,7 +28,7 @@
 pre-build falsification pass. No source file had been created in this
 directory.**
 
-The plan was a `mcp-schema-check` CLI for server authors: launch your own
+The plan was a `mcp-strict-check` CLI for server authors: launch your own
 stdio server (or feed it a `tools/list` dump), and get back, per provider
 axis, which of your tool schemas would be rejected — with the tool name, the
 JSON pointer, the offending value, the verbatim sentence from the provider's

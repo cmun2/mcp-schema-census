@@ -1,4 +1,4 @@
-# Completion report — `checker/` (`mcp-schema-check`)
+# Completion report — `checker/` (`mcp-strict-check`)
 
 **2026-08-23.** Commits `1728bb1` (rule extraction) and `be52dfa` (the checker).
 Nothing pushed; the repository has no git remote configured at all.
@@ -27,7 +27,7 @@ rules/fixes.py       one-line remediation per code   (presentation, not a rule)
 rules/sdk_oracle.py  the vendor transformer wrapper  (oracle, not a rule)
 ```
 
-Six consumers import it: `checker/mcp_schema_check.py`,
+Six consumers import it: `checker/mcp_strict_check/cli.py`,
 `dataset/scripts/judge_anthropic.py`, `dataset/scripts/judge_mcp_and_openai.py`,
 `dataset/scripts/explain.py`, `src/lint_anthropic.py`, `src/lint.py`.
 `dataset/scripts/codes.py` remains as a shim so `from codes import meta_for`
@@ -39,9 +39,9 @@ The identity checks are `is`, not `==` — the same function *object*, not an
 equal copy:
 
 ```
-[PASS] same object: checker/mcp_schema_check.py -> judge_server_anthropic
-[PASS] same object: checker/mcp_schema_check.py -> judge_server_mcp_openai
-[PASS] same object: checker/mcp_schema_check.py -> meta_for
+[PASS] same object: checker/mcp_strict_check/cli.py -> judge_server_anthropic
+[PASS] same object: checker/mcp_strict_check/cli.py -> judge_server_mcp_openai
+[PASS] same object: checker/mcp_strict_check/cli.py -> meta_for
 [PASS] same object: dataset/scripts/judge_anthropic.py -> check_C
 [PASS] same object: dataset/scripts/judge_mcp_and_openai.py -> check_A
 [PASS] same object: dataset/scripts/judge_mcp_and_openai.py -> check_B
@@ -257,7 +257,7 @@ documented constraint. That belongs to an oracle, not to a rule, and
 `--sdk-oracle` reports it:
 
 ```
-$ .venv-anth/bin/python checker/mcp_schema_check.py --tools t2.json --sdk-oracle
+$ .venv-anth/bin/python checker/mcp_strict_check/cli.py --tools t2.json --sdk-oracle
 
 ==============================================================================
 Anthropic Python SDK transformer  —  oracle, not a rule
@@ -338,7 +338,7 @@ $ git status --short
 ?? .DS_Store
 
 $ git log --oneline -3
-be52dfa Add mcp-schema-check, a strict-mode checker for server authors
+be52dfa Add mcp-strict-check, a strict-mode checker for server authors
 1728bb1 Extract the verdict rules into one shared engine
 423358f Record that the SDK defect was filed as anthropic-sdk-python#1876
 

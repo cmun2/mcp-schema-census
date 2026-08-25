@@ -5,7 +5,7 @@
 
 The rules themselves are NOT here. They live in `rules/anthropic.py`, which
 this file, src/lint_anthropic.py, scripts/explain.py and
-checker/mcp_schema_check.py all import. See rules/__init__.py for why.
+checker/mcp_strict_check/cli.py all import. See rules/__init__.py for why.
 """
 import json, os, sys
 

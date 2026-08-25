@@ -5,7 +5,7 @@ Four tools, each carrying one shape that a provider strict mode rejects, plus
 one that is clean. Speaks the minimum stdio JSON-RPC needed for
 initialize -> notifications/initialized -> tools/list.
 
-    python3 checker/mcp_schema_check.py --cmd "python3 checker/examples/demo_server.py"
+    ./checker/mcp-strict-check --cmd "python3 checker/examples/demo_server.py"
 """
 import json
 import sys

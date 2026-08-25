@@ -4,7 +4,7 @@
     python3 scripts/judge_mcp_and_openai.py <tools.jsonl> <out.jsonl>
 
 The rules themselves are NOT here. They live in `rules/mcp_openai.py`, which
-this file, src/lint.py and checker/mcp_schema_check.py all import.
+this file, src/lint.py and checker/mcp_strict_check/cli.py all import.
 See rules/__init__.py for why.
 """
 import json, os, sys

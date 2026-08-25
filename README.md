@@ -1,5 +1,6 @@
 # mcp-schema-census
 
+[![PyPI](https://img.shields.io/pypi/v/mcp-strict-check?label=mcp-strict-check)](https://pypi.org/project/mcp-strict-check/)
 [![data: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-blue)](dataset/LICENSE)
 [![code: MIT](https://img.shields.io/badge/code-MIT-green)](LICENSE)
 [![servers: 617](https://img.shields.io/badge/servers-617-informational)](dataset/servers.jsonl)
@@ -9,8 +10,7 @@
 why, at which JSON pointer, quoting the sentence the rejection rests on.**
 
 ```console
-$ git clone https://github.com/cmun2/mcp-schema-census && cd mcp-schema-census
-$ ./checker/mcp-schema-check --cmd "npx -y your-server"
+$ uvx mcp-strict-check --cmd "npx -y your-server"
 
   axis                                          scope  verdict  tools   corpus
   --------------------------------------------------------------------------
@@ -124,7 +124,7 @@ other way from what you might guess: the axis that issue is about fails
 
 | path | what it is |
 |---|---|
-| [`checker/`](checker/) | `mcp-schema-check` — run it against your own server |
+| [`checker/`](checker/) | [`mcp-strict-check`](https://pypi.org/project/mcp-strict-check/) — `uvx mcp-strict-check` against your own server |
 | [`dataset/`](dataset/) | the corpus, the docs, the verification scripts |
 | [`dataset/scripts/rules/`](dataset/scripts/rules/) | the one rule engine. The corpus and the checker import the same objects; a test asserts it by identity |
 | [`src/`](src/) | collection harness |

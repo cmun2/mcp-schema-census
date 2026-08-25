@@ -17,7 +17,7 @@ Two outputs per tool:
                   (i.e. the constraint is LOST unless the caller re-validates)
 
 The oracle body lives in dataset/scripts/rules/sdk_oracle.py so that this
-script and checker/mcp_schema_check.py --sdk-oracle run the identical
+script and `mcp-strict-check --sdk-oracle` run the identical
 transform-and-diff, for the same reason the verdict rules are shared.
 
 Run with the venv that has `anthropic` installed.

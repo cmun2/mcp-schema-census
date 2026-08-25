@@ -37,7 +37,7 @@ ROOT = os.path.dirname(CHECKER)
 DATASET = os.path.join(ROOT, "dataset")
 sys.path.insert(0, CHECKER)
 
-from mcp_schema_check import analyse            # noqa: E402
+from mcp_strict_check import analyse            # noqa: E402
 
 
 def load_jsonl(name):

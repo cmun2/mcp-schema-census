@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
-"""mcp-schema-check -- which of your MCP tool schemas a provider's strict mode
+"""mcp-strict-check -- which of your MCP tool schemas a provider's strict mode
 would reject, and what to change.
 
 This is NOT an MCP-specification validator. Five tools already do that well
-(see checker/README.md, "What this is not"). In the 617-server corpus in
-../dataset/, the MCP-spec axis fails 0 servers -- 0.0%. Everybody already
-passes it.
+(see the project README, "What this is not"). In the published 617-server
+corpus the MCP-spec axis fails 0 servers -- 0.0%. Everybody already passes
+it.
 
 What fails is the *provider strict-mode subset*: the narrower JSON Schema each
 model provider accepts once you turn strict output on. On that axis 63.0% of
 the same 617 servers are rejected. That gap is what this command reports.
 
-Every rule comes from ../dataset/scripts/rules/, the same engine that produced
-the published corpus. Nothing here re-implements a constraint, and every
-finding carries the verbatim sentence from the provider's own documentation
-that the verdict rests on, plus its URL.
+Every rule comes from dataset/scripts/rules/ -- one physical copy in the
+repository, shipped inside the wheel as mcp_strict_check.rules -- the same
+engine that produced the published corpus. Nothing here re-implements a
+constraint, and every finding carries the verbatim sentence from the
+provider's own documentation that the verdict rests on, plus its URL.
 
 No network calls. `--cmd` starts YOUR server as a local child process and
 speaks stdio JSON-RPC to it; nothing leaves the machine.
 """
 import argparse
+import importlib
 import json
 import os
 import queue
@@ -27,25 +29,16 @@ import subprocess
 import sys
 import threading
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-RULES_DIR = os.path.join(ROOT, "dataset", "scripts")
-sys.path.insert(0, RULES_DIR)
+from ._rules import rules, engine_label                       # noqa: E402
 
-try:
-    from rules import (                                        # noqa: E402
-        judge_server_anthropic, judge_server_mcp_openai,
-        meta_for, fix_for, split_pointer,
-    )
-except ImportError as e:                                        # pragma: no cover
-    sys.stderr.write(
-        f"cannot import the rule engine from {RULES_DIR}: {e}\n"
-        "mcp-schema-check must run from inside the mcp-schema-census repository;\n"
-        "the rules and the dataset that validates them are deliberately one tree.\n")
-    raise SystemExit(2)
+judge_server_anthropic = rules.judge_server_anthropic
+judge_server_mcp_openai = rules.judge_server_mcp_openai
+meta_for = rules.meta_for
+fix_for = rules.fix_for
+split_pointer = rules.split_pointer
 
 VERSION = "0.1.0"
-CLIENT_INFO = {"name": "mcp-schema-check", "version": VERSION}
+CLIENT_INFO = {"name": "mcp-strict-check", "version": VERSION}
 PROTOCOL_VERSIONS = ["2025-06-18", "2024-11-05"]
 
 # axis id -> (selector name, human label, opt-in?, corpus server-unit rate)
@@ -284,9 +277,9 @@ def render(findings, meta, args, st, out=sys.stdout):
     selected = meta["selected_axes"]
 
     p()
-    p(st.bold(f"mcp-schema-check {VERSION}") + st.dim(f"  ·  {meta['input_label']}"))
-    p(st.dim(f"rules: {os.path.relpath(RULES_DIR, ROOT)}  (the engine that produced "
-             f"the {meta['corpus_n']}-server corpus in dataset/)"))
+    p(st.bold(f"mcp-strict-check {VERSION}") + st.dim(f"  ·  {meta['input_label']}"))
+    p(st.dim(f"rules: {engine_label()}  (the engine that produced "
+             f"the {meta['corpus_n']}-server corpus)"))
     p()
     p(f"{meta['n_tools']} tool(s) checked" +
       (f"  ·  server: {meta['server_info']}" if meta.get("server_info") else ""))
@@ -412,14 +405,16 @@ def run_sdk_oracle(tools):
     so a missing optional dependency degrades to a printed explanation instead
     of a stack trace."""
     try:
-        from rules import sdk_oracle
+        sdk_oracle = importlib.import_module(rules.__name__ + ".sdk_oracle")
     except ImportError as e:
         return {"unavailable": f"cannot import the oracle module: {e}", "tools": []}
     if not sdk_oracle.available():
         return {"unavailable":
                 "the `anthropic` package is not importable in this interpreter. "
-                "`pip install anthropic` and re-run; it is a local transform, "
-                "no API key and no network call.", "tools": []}
+                "Install the extra -- `pip install \"mcp-strict-check[sdk-oracle]\"`, "
+                "or `uvx --from \"mcp-strict-check[sdk-oracle]\" mcp-strict-check` -- "
+                "and re-run. It is a local transform: no API key, no network call.",
+                "tools": []}
     out = []
     for t in tools:
         if not isinstance(t, dict):
@@ -491,14 +486,14 @@ def parse_env(pairs):
 
 def build_parser():
     ap = argparse.ArgumentParser(
-        prog="mcp-schema-check",
+        prog="mcp-strict-check",
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""examples:
-  mcp-schema-check --cmd "npx -y @modelcontextprotocol/server-everything"
-  mcp-schema-check --tools tools.json --axis anthropic
-  mcp-schema-check --schema one-input-schema.json --json
-  mcp-schema-check --cmd "python -m my_server" --axis openai --fail-on silent
+  mcp-strict-check --cmd "npx -y @modelcontextprotocol/server-everything"
+  mcp-strict-check --tools tools.json --axis anthropic
+  mcp-strict-check --schema one-input-schema.json --json
+  mcp-strict-check --cmd "python -m my_server" --axis openai --fail-on silent
 
 exit codes:
   0  no hard reject on the selected axes (or --exit-zero)
@@ -527,9 +522,10 @@ exit codes:
     ap.add_argument("--sdk-oracle", action="store_true",
                     help="additionally run the real Anthropic Python SDK's own "
                          "schema transformer over each schema, locally, and report "
-                         "what it refuses or silently drops. Needs `pip install "
-                         "anthropic`; makes no API call and needs no key. Reports "
-                         "SDK defects the published constraint docs do not cover.")
+                         "what it refuses or silently drops. Needs the extra: "
+                         "pip install \"mcp-strict-check[sdk-oracle]\". Makes no API "
+                         "call and needs no key. Reports SDK defects the published "
+                         "constraint docs do not cover.")
     ap.add_argument("--show-ambiguous", action="store_true",
                     help="also print cases the provider docs do not settle "
                          "(never affects the exit code)")
@@ -542,7 +538,7 @@ exit codes:
     ap.add_argument("--timeout", type=float, default=30.0, metavar="SEC",
                     help="per-request timeout for --cmd (default 30)")
     ap.add_argument("--no-color", action="store_true")
-    ap.add_argument("--version", action="version", version=f"mcp-schema-check {VERSION}")
+    ap.add_argument("--version", action="version", version=f"mcp-strict-check {VERSION}")
     return ap
 
 
@@ -602,8 +598,8 @@ def main(argv=None):
 
     if args.as_json:
         json.dump({
-            "tool": "mcp-schema-check", "version": VERSION,
-            "rules_engine": os.path.relpath(RULES_DIR, ROOT),
+            "tool": "mcp-strict-check", "version": VERSION,
+            "rules_engine": engine_label(),
             "input": {"kind": "cmd" if args.cmd else ("tools" if args.tools else "schema"),
                       "value": label},
             "server_info": server_info,

@@ -562,7 +562,7 @@ Summarised here, in full in [LIMITATIONS.md](LIMITATIONS.md).
 
 ## Related files in this repository
 
-- `../checker/` — **`mcp-schema-check`**, a CLI for server authors: point it at
+- `../checker/` — **`mcp-strict-check`**, a CLI for server authors: point it at
   your own server and it reports which of your tool schemas each provider's
   strict mode would reject, with the JSON pointer, the verbatim doc quote and a
   one-line fix. It imports this directory's `scripts/rules/` rather than

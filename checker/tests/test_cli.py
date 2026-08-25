@@ -16,15 +16,18 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHECKER = os.path.dirname(HERE)
 ROOT = os.path.dirname(CHECKER)
-CLI = os.path.join(CHECKER, "mcp_schema_check.py")
+# `python -m mcp_strict_check` with checker/ on the path: the same entry
+# point the installed console script calls, exercised without installing.
+CLI = [sys.executable, "-m", "mcp_strict_check"]
+ENV = dict(os.environ, PYTHONPATH=CHECKER + os.pathsep + os.environ.get("PYTHONPATH", ""))
 DEMO = f'{sys.executable} {os.path.join(CHECKER, "examples", "demo_server.py")}'
 
 fails = []
 
 
 def run(args, expect_exit):
-    p = subprocess.run([sys.executable, CLI] + args, capture_output=True,
-                       text=True, cwd=ROOT)
+    p = subprocess.run(CLI + args, capture_output=True,
+                       text=True, cwd=ROOT, env=ENV)
     ok = p.returncode == expect_exit
     label = " ".join(a if len(a) < 46 else a[:43] + "..." for a in args)
     print(f"[{'PASS' if ok else 'FAIL'}] exit {p.returncode} (want {expect_exit})  {label}")
@@ -58,8 +61,8 @@ run(["--cmd", DEMO, "--timeout", "0.001"], 2)
 
 # ---- (b) --tools : a tools/list dump, in all three shapes ----------------
 tools = json.loads(subprocess.run(
-    [sys.executable, CLI, "--cmd", DEMO, "--json"], capture_output=True,
-    text=True, cwd=ROOT).stdout)
+    CLI + ["--cmd", DEMO, "--json"], capture_output=True,
+    text=True, cwd=ROOT, env=ENV).stdout)
 check("--json is parseable and reports its own exit code",
       tools["exit_code"] == 1 and tools["n_tools"] == 4)
 check("--json names the shared rule engine",
@@ -69,11 +72,8 @@ check("every --json finding carries a source URL, a quote and a fix",
       all(f["source"] and f["source_quote"] and f["fix"] for f in tools["findings"]),
       f"{len(tools['findings'])} findings")
 
-import importlib.util                                   # noqa: E402
-spec = importlib.util.spec_from_file_location("mcp_schema_check", CLI)
-mod = importlib.util.module_from_spec(spec)
-sys.modules["mcp_schema_check"] = mod
-spec.loader.exec_module(mod)
+sys.path.insert(0, CHECKER)                             # noqa: E402
+import mcp_strict_check as mod                          # noqa: E402
 raw = [{"name": "search", "inputSchema": {"type": "object", "properties": {
     "q": {"type": "string", "maxLength": 5}}, "additionalProperties": False}}]
 with tempfile.TemporaryDirectory() as d:

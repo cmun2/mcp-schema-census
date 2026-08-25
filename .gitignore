@@ -1,7 +1,6 @@
 node_modules/
-.env
 __pycache__/
 *.pyc
-.venv/
-oracle_ts/node_modules/
-.venv-anth/
+.DS_Store
+dist/
+build/

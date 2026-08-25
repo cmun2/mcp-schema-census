@@ -1,0 +1,107 @@
+# Packaging for `mcp-strict-check` only.
+#
+# This repository is a measurement corpus first and a command second, so the
+# build is deliberately narrow: it ships checker/mcp_strict_check/ plus the
+# rule engine, and nothing else. The dataset itself (dataset/*.jsonl) is
+# published separately -- see README.md, "공개 단위는 이 레포가 아니라
+# dataset/ 디렉토리다".
+#
+# THE ONE THING NOT TO BREAK
+# --------------------------
+# There is exactly one physical copy of the verdict rules in this repository:
+# dataset/scripts/rules/. The dataset build, src/lint*.py and the checker all
+# import that directory, so a published rate and a checker finding can never
+# come from two diverging tables.
+#
+# The wheel therefore does NOT contain a second copy checked into the tree.
+# `force-include` below maps the one directory into the wheel under the
+# package name at build time. checker/tests/test_single_source.py asserts the
+# count on disk (and, independently, over `git ls-files`) is 1.
+
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-strict-check"
+version = "0.1.0"
+description = "Which of your MCP tool schemas a provider's strict mode would reject, at which JSON pointer, and what to change."
+readme = { file = "checker/README.md", content-type = "text/markdown" }
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = [
+    "mcp", "model-context-protocol", "json-schema", "strict-mode",
+    "structured-outputs", "tool-use", "anthropic", "openai", "linter", "cli",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+# Zero runtime dependencies, on purpose. Everything the checker does -- the
+# stdio JSON-RPC client, the JSON parsing, the rules -- is standard library,
+# so `uvx mcp-strict-check` resolves nothing and a CI job installs nothing.
+dependencies = []
+
+# The clone URL checker/README.md already publishes. If the repository moves,
+# these three and that line move together.
+[project.urls]
+Homepage      = "https://github.com/cmun2/mcp-schema-census"
+Repository    = "https://github.com/cmun2/mcp-schema-census"
+Issues        = "https://github.com/cmun2/mcp-schema-census/issues"
+"Dataset"     = "https://github.com/cmun2/mcp-schema-census/tree/main/dataset"
+
+[[project.authors]]
+name = "cmun2"
+
+[project.optional-dependencies]
+# --sdk-oracle runs the vendor's own transform_schema locally. It is an
+# oracle, not a rule: without this extra the flag prints why it is skipped
+# and the checker still works. Still no API key and no network call.
+sdk-oracle = ["anthropic>=1.0.0"]
+
+[project.scripts]
+mcp-strict-check = "mcp_strict_check.cli:main"
+
+# --------------------------------------------------------------------- build
+
+[tool.hatch.build]
+exclude = ["**/__pycache__", "**/*.py[co]", "**/.DS_Store"]
+
+[tool.hatch.build.targets.wheel]
+# checker/mcp_strict_check/ -> mcp_strict_check/
+packages = ["checker/mcp_strict_check"]
+
+[tool.hatch.build.targets.wheel.force-include]
+# The single copy of the rule engine, mapped in as a subpackage. rules/ uses
+# relative imports throughout, so it works unchanged under either name.
+"dataset/scripts/rules" = "mcp_strict_check/rules"
+
+[tool.hatch.build.targets.sdist]
+# Keep the repository layout inside the sdist so that building a wheel FROM
+# the sdist hits the same paths the force-include above names.
+include = [
+    "/pyproject.toml",
+    "/LICENSE",
+    "/checker/README.md",
+    "/checker/mcp_strict_check",
+    "/checker/mcp-strict-check",
+    "/checker/examples",
+    "/checker/tests",
+    "/dataset/scripts/rules",
+    "/dataset/LICENSE",
+]
